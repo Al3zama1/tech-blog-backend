@@ -7,5 +7,5 @@ public class ErrorMessages {
     public static final String PASSWORDS_MUST_MATCH = "Registration passwords must match";
     public static final String USER_EXISTS = "Email is taken";
     public static final String ROLE_ASSIGNMENT_FAILURE = "Role assignment failure";
-    public static final String INVALID_CREDENTIALS = "Invalid credentials";
+    public static final String INVALID_CREDENTIALS = "Check your credentials and try again";
 }

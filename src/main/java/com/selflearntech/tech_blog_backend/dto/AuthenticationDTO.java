@@ -2,8 +2,10 @@ package com.selflearntech.tech_blog_backend.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -15,6 +17,5 @@ public class AuthenticationDTO {
     @Email
     private String email;
 
-    @Size(min = 8, max = 15)
     private String password;
 }
