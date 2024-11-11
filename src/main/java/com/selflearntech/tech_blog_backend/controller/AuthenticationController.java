@@ -3,9 +3,8 @@ package com.selflearntech.tech_blog_backend.controller;
 import com.selflearntech.tech_blog_backend.dto.AuthenticationDTO;
 import com.selflearntech.tech_blog_backend.dto.RegistrationDTO;
 import com.selflearntech.tech_blog_backend.dto.UserDTO;
+import com.selflearntech.tech_blog_backend.dto.UserWithRefreshAndAccessTokenDTO;
 import com.selflearntech.tech_blog_backend.mapper.UserMapper;
-import com.selflearntech.tech_blog_backend.model.User;
-import com.selflearntech.tech_blog_backend.service.ITokenService;
 import com.selflearntech.tech_blog_backend.service.impl.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,6 @@ import java.time.Duration;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
-    private final ITokenService tokenService;
     private final UserMapper userMapper;
 
     @PostMapping("/register")
@@ -35,11 +33,11 @@ public class AuthenticationController {
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<UserDTO> authenticateUser(@Valid @RequestBody AuthenticationDTO authenticationDTO) {
-        User user = authenticationService.authenticateUser(authenticationDTO.getEmail(), authenticationDTO.getPassword());
-        String accessToken = tokenService.createAccesstoken(user);
-        UserDTO userDTO = userMapper.toUserDTO(user, accessToken);
+        UserWithRefreshAndAccessTokenDTO userWithRefreshAndAccessTokenDTO = authenticationService
+                .authenticateUser(authenticationDTO.getEmail(), authenticationDTO.getPassword());
+        UserDTO userDTO = userMapper.toUserDTO(userWithRefreshAndAccessTokenDTO);
 
-        ResponseCookie refreshToken = ResponseCookie.from("refresh-token", user.getToken().getRefreshToken())
+        ResponseCookie refreshToken = ResponseCookie.from("refresh-token", userWithRefreshAndAccessTokenDTO.getRefreshToken())
                 .domain("localhost")
                 .path("/auth/refresh")
                 .httpOnly(true)
@@ -51,5 +49,13 @@ public class AuthenticationController {
                .header(HttpHeaders.SET_COOKIE, refreshToken.toString())
                .body(userDTO);
 
+
     }
+
+    @GetMapping("/refresh")
+    @ResponseStatus(HttpStatus.OK)
+    public String refreshAccessToken(@CookieValue(name = "refresh-token", required = true) String refreshToken) {
+        return null;
+    }
+
 }

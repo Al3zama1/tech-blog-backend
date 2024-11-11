@@ -4,17 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.selflearntech.tech_blog_backend.config.SecurityConfig;
 import com.selflearntech.tech_blog_backend.dto.AuthenticationDTO;
 import com.selflearntech.tech_blog_backend.dto.RegistrationDTO;
+import com.selflearntech.tech_blog_backend.dto.UserWithRefreshAndAccessTokenDTO;
 import com.selflearntech.tech_blog_backend.exception.BadRequestException;
 import com.selflearntech.tech_blog_backend.exception.ErrorMessages;
 import com.selflearntech.tech_blog_backend.exception.UserExistsException;
 import com.selflearntech.tech_blog_backend.mapper.UserMapper;
-import com.selflearntech.tech_blog_backend.model.User;
-import com.selflearntech.tech_blog_backend.service.ITokenService;
 import com.selflearntech.tech_blog_backend.service.impl.AuthenticationService;
 import com.selflearntech.tech_blog_backend.test_data.AuthenticationDTOMother;
 import com.selflearntech.tech_blog_backend.test_data.RegistrationDTOMother;
-import com.selflearntech.tech_blog_backend.test_data.TokenMother;
-import com.selflearntech.tech_blog_backend.test_data.UserMother;
 import com.selflearntech.tech_blog_backend.test_utils.ResponseBodyMatchers;
 import com.selflearntech.tech_blog_backend.utils.RSAKeyProperties;
 import org.junit.jupiter.api.Nested;
@@ -50,9 +47,8 @@ class AuthenticationControllerTest {
     private UserDetailsService userDetailsService;
     @MockBean
     private UserMapper userMapper;
-    @MockBean
-    private ITokenService tokenService;
 
+    
     @Nested
     public class UserRegistration {
 
@@ -127,27 +123,26 @@ class AuthenticationControllerTest {
         void authenticateUser_WithValidData_ShouldReturn200StatusWithUserDTO() throws Exception {
             // Given
             AuthenticationDTO authenticationDTO = AuthenticationDTOMother.complete().build();
-            User user = UserMother.complete().token(TokenMother.complete().build()).build();
-            String accessToken = "accessToken";
+            UserWithRefreshAndAccessTokenDTO userWithRefreshAndAccessTokenDTO = UserWithRefreshAndAccessTokenDTO.builder()
+                    .refreshToken("refreshToken")
+                    .build();
 
             given(authenticationService.authenticateUser(authenticationDTO.getEmail(), authenticationDTO.getPassword()))
-                    .willReturn(user);
-            given(tokenService.createAccesstoken(user)).willReturn(accessToken);
+                    .willReturn(userWithRefreshAndAccessTokenDTO);
 
             // When
             mockMvc.perform(post("/auth/login")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(authenticationDTO)))
                     .andExpect(status().isOk())
-                    .andExpect(cookie().value("refresh-token", user.getToken().getRefreshToken()))
+                    .andExpect(cookie().value("refresh-token", userWithRefreshAndAccessTokenDTO.getRefreshToken()))
                     .andExpect(cookie().httpOnly("refresh-token", true))
                     .andExpect(cookie().domain("refresh-token", "localhost"))
                     .andExpect(cookie().path("refresh-token", "/auth/refresh"));
 
             // Then
             then(authenticationService).should().authenticateUser(authenticationDTO.getEmail(), authenticationDTO.getPassword());
-            then(tokenService).should().createAccesstoken(user);
-            then(userMapper).should().toUserDTO(user, accessToken);
+            then(userMapper).should().toUserDTO(userWithRefreshAndAccessTokenDTO);
         }
 
         @Test
@@ -199,6 +194,14 @@ class AuthenticationControllerTest {
 
             // Then
             then(authenticationService).shouldHaveNoInteractions();
+        }
+    }
+
+    @Nested
+    public class RefreshToken {
+        @Test
+        void refreshAccessToken_WithValidCookie_ShouldReturnNewAccessToken() {
+
         }
     }
 

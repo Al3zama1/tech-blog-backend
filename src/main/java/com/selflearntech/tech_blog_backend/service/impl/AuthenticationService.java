@@ -1,7 +1,7 @@
 package com.selflearntech.tech_blog_backend.service.impl;
 
 import com.selflearntech.tech_blog_backend.dto.RegistrationDTO;
-import com.selflearntech.tech_blog_backend.model.User;
+import com.selflearntech.tech_blog_backend.dto.UserWithRefreshAndAccessTokenDTO;
 import com.selflearntech.tech_blog_backend.service.IAuthenticationService;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ public class AuthenticationService implements IAuthenticationService {
     }
 
     @Override
-    public User authenticateUser(String email, String password) {
+    public UserWithRefreshAndAccessTokenDTO authenticateUser(String email, String password) {
 
         return null;
     }
