@@ -1,0 +1,19 @@
+spring:
+    profiles:
+        active: dev
+    application:
+        name: tech-blog-backend
+    jpa:
+        hibernate:
+            ddl-auto: create-drop
+    mvc:
+      dispatch-options-request: true
+  # web:
+        # resources:
+            # add-mappings: false
+server:
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on-param
+    include-exception: false
