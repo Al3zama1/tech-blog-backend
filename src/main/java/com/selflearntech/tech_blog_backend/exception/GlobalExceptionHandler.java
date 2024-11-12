@@ -4,10 +4,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -54,6 +51,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler  {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<Object> handleUsernameNotFoundException(UsernameNotFoundException ex, WebRequest request) {
         return buildErrorResponse(ex, ErrorMessages.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED, request);
+    }
+
+    @ExceptionHandler(RefreshTokenException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<Object> handleRefreshTokenException(RefreshTokenException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage());
+
+        ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh-token", null).build();
+
+        return ResponseEntity
+                .status(errorResponse.getStatus())
+                .header(HttpHeaders.SET_COOKIE, deleteRefreshTokenCookie.toString())
+                .body(errorResponse);
     }
 
     // Takes care of unhandled exceptions prior to the addition of ResponseEntityExceptionHandler

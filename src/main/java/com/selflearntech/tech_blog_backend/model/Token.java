@@ -26,6 +26,9 @@ public class Token {
     @Column(name = "expire_time", nullable = false)
     private Instant expireTime;
 
+    @Column(name = "is_valid", nullable = false)
+    private boolean isValid;
+
     @OneToOne()
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

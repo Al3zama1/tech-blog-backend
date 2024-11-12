@@ -1,9 +1,6 @@
 package com.selflearntech.tech_blog_backend.controller;
 
-import com.selflearntech.tech_blog_backend.dto.AuthenticationDTO;
-import com.selflearntech.tech_blog_backend.dto.RegistrationDTO;
-import com.selflearntech.tech_blog_backend.dto.UserDTO;
-import com.selflearntech.tech_blog_backend.dto.UserWithRefreshAndAccessTokenDTO;
+import com.selflearntech.tech_blog_backend.dto.*;
 import com.selflearntech.tech_blog_backend.mapper.UserMapper;
 import com.selflearntech.tech_blog_backend.service.impl.AuthenticationService;
 import jakarta.validation.Valid;
@@ -52,10 +49,12 @@ public class AuthenticationController {
 
     }
 
-    @GetMapping("/refresh")
+    @PostMapping("/refresh")
     @ResponseStatus(HttpStatus.OK)
-    public String refreshAccessToken(@CookieValue(name = "refresh-token", required = true) String refreshToken) {
-        return null;
+    public AccessTokenDTO refreshAccessToken(@CookieValue(name = "refresh-token") String refreshToken) {
+        String accessToken = authenticationService.refreshAccessToken(refreshToken);
+        return new AccessTokenDTO(accessToken);
+
     }
 
 }

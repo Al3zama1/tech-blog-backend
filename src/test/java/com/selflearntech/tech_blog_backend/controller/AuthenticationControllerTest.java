@@ -7,6 +7,7 @@ import com.selflearntech.tech_blog_backend.dto.RegistrationDTO;
 import com.selflearntech.tech_blog_backend.dto.UserWithRefreshAndAccessTokenDTO;
 import com.selflearntech.tech_blog_backend.exception.BadRequestException;
 import com.selflearntech.tech_blog_backend.exception.ErrorMessages;
+import com.selflearntech.tech_blog_backend.exception.RefreshTokenException;
 import com.selflearntech.tech_blog_backend.exception.UserExistsException;
 import com.selflearntech.tech_blog_backend.mapper.UserMapper;
 import com.selflearntech.tech_blog_backend.service.impl.AuthenticationService;
@@ -21,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockCookie;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -48,7 +50,7 @@ class AuthenticationControllerTest {
     @MockBean
     private UserMapper userMapper;
 
-    
+
     @Nested
     public class UserRegistration {
 
@@ -200,8 +202,59 @@ class AuthenticationControllerTest {
     @Nested
     public class RefreshToken {
         @Test
-        void refreshAccessToken_WithValidCookie_ShouldReturnNewAccessToken() {
+        void refreshAccessToken_WithValidCookie_ShouldReturnNewAccessToken() throws Exception {
+            // Given
+            String refreshToken = "refreshToken";
+            MockCookie refreshTokenCookie = new MockCookie("refresh-token", refreshToken);
 
+            given(authenticationService.refreshAccessToken(refreshToken)).willReturn("accessToken");
+
+            // When
+            mockMvc.perform(post("/auth/refresh")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .cookie(refreshTokenCookie))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.accessToken").exists());
+
+            // Then
+            then(authenticationService).should().refreshAccessToken(refreshToken);
+        }
+
+        @Test
+        void refreshAccessToken_WithMissingRefreshTokenCookie_ShouldReturn400Status() throws Exception {
+            // Given
+
+
+            // When
+            mockMvc.perform(post("/auth/refresh")
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            then(authenticationService).shouldHaveNoInteractions();
+        }
+
+        @Test
+        void refreshAccessToken_WithInvalidRefreshToken_ShouldReturn401Status() throws Exception {
+            // Given
+            String refreshToken = "refreshToken";
+            MockCookie refreshTokenCookie = new MockCookie("refresh-token", refreshToken);
+
+            given(authenticationService.refreshAccessToken(refreshToken)).willThrow(new RefreshTokenException(ErrorMessages.INVALID_REFRESH_TOKEN));
+
+            // When
+            mockMvc.perform(post("/auth/refresh")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .cookie(refreshTokenCookie))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(header().string("Set-Cookie", "refresh-token="))
+                    .andExpect(jsonPath("$.message").value(ErrorMessages.INVALID_REFRESH_TOKEN));
+
+            // Then
+            then(authenticationService).should().refreshAccessToken(refreshToken);
         }
     }
 

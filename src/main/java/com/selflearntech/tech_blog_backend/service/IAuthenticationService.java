@@ -7,4 +7,6 @@ public interface IAuthenticationService {
     void registerUser(RegistrationDTO registrationDTO);
 
     UserWithRefreshAndAccessTokenDTO authenticateUser(String email, String password);
+
+    String refreshAccessToken(String token);
 }

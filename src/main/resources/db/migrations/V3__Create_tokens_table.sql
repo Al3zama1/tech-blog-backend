@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS tokens (
     user_id INTEGER NOT NULL UNIQUE,
     refresh_token VARCHAR(500) NOT NULL,
     expire_time TIMESTAMP NOT NULL,
+    is_valid BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
