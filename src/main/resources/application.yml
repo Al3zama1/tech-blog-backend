@@ -5,7 +5,7 @@ spring:
         name: tech-blog-backend
     jpa:
         hibernate:
-            ddl-auto: create-drop
+            ddl-auto: validate
     mvc:
       dispatch-options-request: true
   # web:

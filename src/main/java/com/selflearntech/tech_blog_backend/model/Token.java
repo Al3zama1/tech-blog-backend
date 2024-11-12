@@ -23,7 +23,7 @@ public class Token {
     @Column(name = "refresh_token", length = 500, nullable = false)
     private String refreshToken;
 
-    @Column(nullable = false)
+    @Column(name = "expire_time", nullable = false)
     private Instant expireTime;
 
     @OneToOne()
