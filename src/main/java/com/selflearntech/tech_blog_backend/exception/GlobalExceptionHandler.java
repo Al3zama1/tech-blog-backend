@@ -55,9 +55,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler  {
 
     @ExceptionHandler(RefreshTokenException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseEntity<Object> handleRefreshTokenException(RefreshTokenException ex, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage());
+    public ResponseEntity<Object> handleRefreshTokenException(RefreshTokenException ex) {
+        log.info(ex.getMessage(), ex);
 
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ErrorMessages.INVALID_REFRESH_TOKEN);
         ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh-token", null).build();
 
         return ResponseEntity

@@ -259,7 +259,7 @@ class AuthenticationControllerTest {
             String refreshToken = "refreshToken";
             MockCookie refreshTokenCookie = new MockCookie("refresh-token", refreshToken);
 
-            given(authenticationService.refreshAccessToken(refreshToken)).willThrow(new RefreshTokenException(ErrorMessages.INVALID_REFRESH_TOKEN));
+            given(authenticationService.refreshAccessToken(refreshToken)).willThrow(new RefreshTokenException(ErrorMessages.INVALID_REFRESH_TOKEN + ": " + ErrorMessages.FAIL_TOKEN_DECODE));
 
             // When
             mockMvc.perform(post("/auth/refresh")

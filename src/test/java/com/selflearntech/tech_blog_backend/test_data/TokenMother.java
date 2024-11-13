@@ -6,6 +6,7 @@ public class TokenMother {
     public static Token.TokenBuilder complete() {
         return Token.builder()
                 .tokenId(1)
+                .isValid(true)
                 .refreshToken("token");
     }
 }

@@ -45,8 +45,6 @@ public class AuthenticationController {
                .ok()
                .header(HttpHeaders.SET_COOKIE, refreshToken.toString())
                .body(userDTO);
-
-
     }
 
     @PostMapping("/refresh")
