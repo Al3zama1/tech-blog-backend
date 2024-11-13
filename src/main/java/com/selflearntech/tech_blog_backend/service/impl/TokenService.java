@@ -22,7 +22,7 @@ public class TokenService implements ITokenService {
     private final Clock clock;
 
     @Override
-    public String createAccesstoken(User user) {
+    public String createAccessToken(User user) {
         String roles = user.getAuthorities().stream().map(Role::getAuthority).collect(Collectors.joining(","));
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")

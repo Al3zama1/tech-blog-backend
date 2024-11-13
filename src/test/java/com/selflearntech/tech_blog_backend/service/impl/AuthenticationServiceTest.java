@@ -208,7 +208,7 @@ class AuthenticationServiceTest {
             cut.refreshAccessToken(refreshToken);
 
             // Then
-            then(tokenService).should().createAccesstoken(user);
+            then(tokenService).should().createAccessToken(user);
         }
 
         @Test

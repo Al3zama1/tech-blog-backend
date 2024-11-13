@@ -65,7 +65,7 @@ public class AuthenticationService implements IAuthenticationService {
         );
 
         User user = (User) authentication.getPrincipal();
-        String accessToken = tokenService.createAccesstoken(user);
+        String accessToken = tokenService.createAccessToken(user);
         String refreshToken = tokenService.createRefreshToken(user.getEmail());
         Jwt refreshJwt;
 
@@ -108,6 +108,6 @@ public class AuthenticationService implements IAuthenticationService {
         if (!storedToken.getRefreshToken().equals(refreshToken)) throw new RefreshTokenException(ErrorMessages.INVALID_REFRESH_TOKEN + ": " + ErrorMessages.COOKIE_REFRESH_TOKEN_AND_DB_TOKEN_UNMATCH);
         if (storedToken.getExpireTime().isBefore(now)) throw new RefreshTokenException(ErrorMessages.INVALID_REFRESH_TOKEN + ": " + ErrorMessages.EXPIRED_REFRESH_TOKEN);
 
-        return tokenService.createAccesstoken(user);
+        return tokenService.createAccessToken(user);
     }
 }
