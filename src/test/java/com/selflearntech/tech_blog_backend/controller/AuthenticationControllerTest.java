@@ -5,11 +5,9 @@ import com.selflearntech.tech_blog_backend.config.SecurityConfig;
 import com.selflearntech.tech_blog_backend.dto.AuthenticationDTO;
 import com.selflearntech.tech_blog_backend.dto.RegistrationDTO;
 import com.selflearntech.tech_blog_backend.dto.UserWithRefreshAndAccessTokenDTO;
-import com.selflearntech.tech_blog_backend.exception.BadRequestException;
-import com.selflearntech.tech_blog_backend.exception.ErrorMessages;
-import com.selflearntech.tech_blog_backend.exception.RefreshTokenException;
-import com.selflearntech.tech_blog_backend.exception.UserExistsException;
+import com.selflearntech.tech_blog_backend.exception.*;
 import com.selflearntech.tech_blog_backend.mapper.UserMapper;
+import com.selflearntech.tech_blog_backend.model.RoleType;
 import com.selflearntech.tech_blog_backend.service.impl.AuthenticationService;
 import com.selflearntech.tech_blog_backend.test_data.AuthenticationDTOMother;
 import com.selflearntech.tech_blog_backend.test_data.RegistrationDTOMother;
@@ -70,6 +68,24 @@ class AuthenticationControllerTest {
         }
 
         @Test
+        void registerUser_WithValidDataButFailToAssignUserRole_ShouldReturn500Status() throws Exception {
+            // Given
+            RegistrationDTO registrationDTO = RegistrationDTOMother.complete().build();
+
+            doThrow(new RoleAssignmentException(ErrorMessages.ROLE_ASSIGNMENT_FAILURE, RoleType.USER.name()))
+                    .when(authenticationService).registerUser(registrationDTO);
+
+            // When
+            mockMvc.perform(post("/auth/register")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(registrationDTO)))
+                    .andExpect(status().isInternalServerError());
+
+            // Then
+            then(authenticationService).should().registerUser(registrationDTO);
+        }
+
+        @Test
         void registerUser_WithInvalidEmailFormat_ShouldReturn400StatusWithValidationError() throws Exception {
             // Given
             RegistrationDTO registrationDTO = RegistrationDTOMother.complete().email("john.doe.com").build();
@@ -117,6 +133,7 @@ class AuthenticationControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.message").value(ErrorMessages.PASSWORDS_MUST_MATCH));
         }
+
     }
 
     @Nested
