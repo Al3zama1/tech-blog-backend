@@ -44,7 +44,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler  {
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
-        return buildErrorResponse(ex, HttpStatus.UNAUTHORIZED, request);
+        return buildErrorResponse(ex, ErrorMessages.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED, request);
     }
 
     @ExceptionHandler

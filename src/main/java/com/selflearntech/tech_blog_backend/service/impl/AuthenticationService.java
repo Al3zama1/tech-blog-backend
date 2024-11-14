@@ -1,6 +1,7 @@
 package com.selflearntech.tech_blog_backend.service.impl;
 
 import com.selflearntech.tech_blog_backend.dto.RegistrationDTO;
+import com.selflearntech.tech_blog_backend.dto.UserDTO;
 import com.selflearntech.tech_blog_backend.dto.UserWithRefreshAndAccessTokenDTO;
 import com.selflearntech.tech_blog_backend.exception.*;
 import com.selflearntech.tech_blog_backend.mapper.UserMapper;
@@ -88,7 +89,7 @@ public class AuthenticationService implements IAuthenticationService {
     }
 
     @Override
-    public String refreshAccessToken(String refreshToken) {
+    public UserDTO refreshAccessToken(String refreshToken) {
         Jwt decodedJwt;
 
         try {
@@ -108,6 +109,7 @@ public class AuthenticationService implements IAuthenticationService {
         if (!storedToken.getRefreshToken().equals(refreshToken)) throw new RefreshTokenException(ErrorMessages.INVALID_REFRESH_TOKEN + ": " + ErrorMessages.COOKIE_REFRESH_TOKEN_AND_DB_TOKEN_UNMATCH);
         if (storedToken.getExpireTime().isBefore(now)) throw new RefreshTokenException(ErrorMessages.INVALID_REFRESH_TOKEN + ": " + ErrorMessages.EXPIRED_REFRESH_TOKEN);
 
-        return tokenService.createAccessToken(user);
+        String accessToken =  tokenService.createAccessToken(user);
+        return userMapper.toUserDTOFromUserAndAccessToken(user, accessToken);
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.selflearntech.tech_blog_backend.config.SecurityConfig;
 import com.selflearntech.tech_blog_backend.dto.AuthenticationDTO;
 import com.selflearntech.tech_blog_backend.dto.RegistrationDTO;
+import com.selflearntech.tech_blog_backend.dto.UserDTO;
 import com.selflearntech.tech_blog_backend.dto.UserWithRefreshAndAccessTokenDTO;
 import com.selflearntech.tech_blog_backend.exception.*;
 import com.selflearntech.tech_blog_backend.mapper.UserMapper;
@@ -11,7 +12,6 @@ import com.selflearntech.tech_blog_backend.model.RoleType;
 import com.selflearntech.tech_blog_backend.service.impl.AuthenticationService;
 import com.selflearntech.tech_blog_backend.test_data.AuthenticationDTOMother;
 import com.selflearntech.tech_blog_backend.test_data.RegistrationDTOMother;
-import com.selflearntech.tech_blog_backend.test_utils.ResponseBodyMatchers;
 import com.selflearntech.tech_blog_backend.utils.RSAKeyProperties;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -26,6 +26,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Set;
+
+import static com.selflearntech.tech_blog_backend.test_utils.ResponseBodyMatchers.responseBody;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doThrow;
@@ -95,7 +98,7 @@ class AuthenticationControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(registrationDTO)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(ResponseBodyMatchers.responseBody().containsError("email", "must be a well-formed email address"));
+                    .andExpect(responseBody().containsError("email", "must be a well-formed email address"));
 
             // Then
             then(authenticationService).shouldHaveNoInteractions();
@@ -209,7 +212,7 @@ class AuthenticationControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(authenticationDTO)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(ResponseBodyMatchers.responseBody().containsError("email", "must be a well-formed email address"));
+                    .andExpect(responseBody().containsError("email", "must be a well-formed email address"));
 
             // Then
             then(authenticationService).shouldHaveNoInteractions();
@@ -222,9 +225,11 @@ class AuthenticationControllerTest {
         void refreshAccessToken_WithValidCookie_ShouldReturnNewAccessToken() throws Exception {
             // Given
             String refreshToken = "refreshToken";
+            UserDTO userDTO = new UserDTO("John", "Doe", "john.doe@gmail.com", "", Set.of("ADMIN", "USER"), "accessToken");
+
             MockCookie refreshTokenCookie = new MockCookie("refresh-token", refreshToken);
 
-            given(authenticationService.refreshAccessToken(refreshToken)).willReturn("accessToken");
+            given(authenticationService.refreshAccessToken(refreshToken)).willReturn(userDTO);;
 
             // When
             mockMvc.perform(post("/auth/refresh")
@@ -232,7 +237,7 @@ class AuthenticationControllerTest {
                     .cookie(refreshTokenCookie))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.accessToken").exists());
+                    .andExpect(responseBody().containsObjectAsJson(userDTO, UserDTO.class));
 
             // Then
             then(authenticationService).should().refreshAccessToken(refreshToken);

@@ -1,6 +1,7 @@
 package com.selflearntech.tech_blog_backend.service;
 
 import com.selflearntech.tech_blog_backend.dto.RegistrationDTO;
+import com.selflearntech.tech_blog_backend.dto.UserDTO;
 import com.selflearntech.tech_blog_backend.dto.UserWithRefreshAndAccessTokenDTO;
 
 public interface IAuthenticationService {
@@ -8,5 +9,5 @@ public interface IAuthenticationService {
 
     UserWithRefreshAndAccessTokenDTO authenticateUser(String email, String password);
 
-    String refreshAccessToken(String token);
+    UserDTO refreshAccessToken(String token);
 }

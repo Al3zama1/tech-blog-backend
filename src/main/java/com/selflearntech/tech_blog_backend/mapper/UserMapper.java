@@ -23,6 +23,9 @@ public interface UserMapper {
 
     UserDTO toUserDTO(UserWithRefreshAndAccessTokenDTO userWithRefreshAndAccessTokenDTO);
 
+    @Mapping(target = "roles", expression = "java(getRoles(user))")
+    UserDTO toUserDTOFromUserAndAccessToken(User user, String accessToken);
+
 
 
 }

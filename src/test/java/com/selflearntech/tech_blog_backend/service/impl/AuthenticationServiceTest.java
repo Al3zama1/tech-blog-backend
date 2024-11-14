@@ -192,6 +192,7 @@ class AuthenticationServiceTest {
             Instant currentTime = fixedClock.instant().minusSeconds(100);
 
             String refreshToken = "refreshToken";
+            String accessToken = "accessToken";
             Token token = TokenMother.complete().refreshToken(refreshToken).expireTime(tokenExpirationTime).build();
             User user = UserMother.complete().token(token).build();
             Jwt jwt = Jwt.withTokenValue(refreshToken)
@@ -203,12 +204,14 @@ class AuthenticationServiceTest {
             given(tokenService.validateJWT(refreshToken)).willReturn(jwt);
             given(userRepository.findByEmail(user.getEmail())).willReturn(Optional.of(user));
             given(clock.instant()).willReturn(currentTime);
+            given(tokenService.createAccessToken(user)).willReturn(accessToken);
 
             // When
             cut.refreshAccessToken(refreshToken);
 
             // Then
             then(tokenService).should().createAccessToken(user);
+            then(userMapper).should().toUserDTOFromUserAndAccessToken(user, accessToken);
         }
 
         @Test
@@ -226,6 +229,7 @@ class AuthenticationServiceTest {
             // Then
             then(userRepository).shouldHaveNoInteractions();
             then(tokenService).shouldHaveNoMoreInteractions();
+            then(userMapper).shouldHaveNoInteractions();
         }
 
         @Test
@@ -254,6 +258,7 @@ class AuthenticationServiceTest {
 
             // Then
             then(tokenService).shouldHaveNoMoreInteractions();
+            then(userMapper).shouldHaveNoInteractions();
         }
 
         @Test
@@ -284,6 +289,7 @@ class AuthenticationServiceTest {
 
             // Then
             then(tokenService).shouldHaveNoMoreInteractions();
+            then(userMapper).shouldHaveNoInteractions();
         }
 
         @Test
@@ -314,6 +320,7 @@ class AuthenticationServiceTest {
 
             // Then
             then(tokenService).shouldHaveNoMoreInteractions();
+            then(userMapper).shouldHaveNoInteractions();
         }
 
         @Test
@@ -344,6 +351,7 @@ class AuthenticationServiceTest {
 
             // Then
             then(tokenService).shouldHaveNoMoreInteractions();
+            then(userMapper).shouldHaveNoInteractions();
         }
     }
 }

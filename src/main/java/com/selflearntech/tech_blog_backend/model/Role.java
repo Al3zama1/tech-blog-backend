@@ -21,6 +21,7 @@ public class Role implements GrantedAuthority {
     private Integer roleId;
 
     @Enumerated(value = EnumType.STRING)
+    @Column(unique = true, nullable = false)
     private RoleType authority;
 
     public Role() {

@@ -49,9 +49,8 @@ public class AuthenticationController {
 
     @PostMapping("/refresh")
     @ResponseStatus(HttpStatus.OK)
-    public AccessTokenDTO refreshAccessToken(@CookieValue(name = "refresh-token") String refreshToken) {
-        String accessToken = authenticationService.refreshAccessToken(refreshToken);
-        return new AccessTokenDTO(accessToken);
+    public UserDTO refreshAccessToken(@CookieValue(name = "refresh-token") String refreshToken) {
+        return authenticationService.refreshAccessToken(refreshToken);
 
     }
 

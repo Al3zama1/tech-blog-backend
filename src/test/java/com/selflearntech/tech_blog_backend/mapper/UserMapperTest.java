@@ -16,11 +16,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class UserMapperTest {
 
-    private static UserMapper userMapper;
+    private static UserMapper cut;
 
     @BeforeAll
     static void beforeAll() {
-        userMapper = Mappers.getMapper(UserMapper.class);
+        cut = Mappers.getMapper(UserMapper.class);
     }
 
     @Test
@@ -33,7 +33,7 @@ class UserMapperTest {
         String accessToken = "accessToken";
 
         // When
-        UserWithRefreshAndAccessTokenDTO userDTO = userMapper.toUserWithAccessAndRefreshTokenDTO(user, accessToken);
+        UserWithRefreshAndAccessTokenDTO userDTO = cut.toUserWithAccessAndRefreshTokenDTO(user, accessToken);
 
         // Then
         assertThat(userDTO.getFirstName()).isEqualTo(user.getFirstName());
@@ -59,7 +59,7 @@ class UserMapperTest {
                 .build();
 
         // When
-        UserDTO userDTO = userMapper.toUserDTO(userWithRefreshAndAccessTokenDTO);
+        UserDTO userDTO = cut.toUserDTO(userWithRefreshAndAccessTokenDTO);
 
         // Then
         assertThat(userDTO.getFirstName()).isEqualTo(userWithRefreshAndAccessTokenDTO.getFirstName());
@@ -68,6 +68,26 @@ class UserMapperTest {
         assertThat(userDTO.getProfileImg()).isEqualTo(userWithRefreshAndAccessTokenDTO.getProfileImg());
         assertThat(userDTO.getRoles()).isEqualTo(userWithRefreshAndAccessTokenDTO.getRoles());
         assertThat(userDTO.getAccessToken()).isEqualTo(userWithRefreshAndAccessTokenDTO.getAccessToken());
+    }
+
+    @Test
+    void toUserDTO_FromUserAndRefreshToken() {
+        // Given
+        User user = UserMother.complete()
+                .authorities(Set.of(RoleMother.ADMIN().build(), RoleMother.USER().build()))
+                .build();
+        String accessToken = "accessToken";
+
+        // When
+        UserDTO userDTO = cut.toUserDTOFromUserAndAccessToken(user, accessToken);
+
+        // Then
+        assertThat(userDTO.getFirstName()).isEqualTo(user.getFirstName());
+        assertThat(userDTO.getLastName()).isEqualTo(user.getLastName());
+        assertThat(userDTO.getEmail()).isEqualTo(user.getEmail());
+        assertThat(userDTO.getProfileImg()).isEqualTo(user.getProfileImg());
+        assertThat(userDTO.getRoles()).isEqualTo(Set.of("USER", "ADMIN"));
+        assertThat(userDTO.getAccessToken()).isEqualTo(accessToken);
     }
 
 }
