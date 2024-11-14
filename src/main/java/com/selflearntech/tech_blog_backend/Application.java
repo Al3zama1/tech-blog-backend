@@ -23,10 +23,9 @@ public class Application {
 //	 		User adminUser = User.builder()
 //					.firstName("John")
 //					.lastName("Doe")
-//					.email("admin@gmail.com")
+//					.email("john.doe@gmail.com")
 //					.password(passwordEncoder.encode("C11l08a#0522"))
 //					.authorities(roles).build();
-//			 adminUser.setToken(Token.builder().user(adminUser).token(null).build());
 //	 		userRepository.save(adminUser);
 //	 	};
 //	 }

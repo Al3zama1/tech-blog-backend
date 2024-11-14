@@ -73,15 +73,24 @@ public class AuthenticationService implements IAuthenticationService {
         try {
             refreshJwt = tokenService.validateJWT(refreshToken);
         } catch (JwtException ex) {
-            throw new RuntimeException(ErrorMessages.INVALID_REFRESH_TOKEN);
+            throw new RuntimeException(ErrorMessages.INVALID_REFRESH_TOKEN + ": " + ErrorMessages.FAIL_TOKEN_DECODE);
         }
 
-        Token token = Token.builder()
-                .user(user)
-                .refreshToken(refreshToken)
-                .expireTime(refreshJwt.getExpiresAt())
-                .isValid(true)
-                .build();
+        Token token;
+
+        if (user.getToken() == null) {
+            token = Token.builder()
+                    .user(user)
+                    .refreshToken(refreshToken)
+                    .expireTime(refreshJwt.getExpiresAt())
+                    .isValid(true)
+                    .build();
+        } else {
+            token = user.getToken();
+            token.setRefreshToken(refreshToken);
+            token.setExpireTime(refreshJwt.getExpiresAt());
+        }
+
         user.setToken(token);
         user = userRepository.save(user);
 

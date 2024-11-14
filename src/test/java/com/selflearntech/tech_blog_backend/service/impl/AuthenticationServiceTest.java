@@ -22,6 +22,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtException;
 
 import java.time.*;
 import java.util.Optional;
@@ -128,11 +129,40 @@ class AuthenticationServiceTest {
     class UserAuthentication {
 
         @Test
-        void authenticateUser_WithValidCredentials_ShouldReturnUserWithRefreshAndAccessTokenDTO() {
+        void authenticateUser_CreateRefreshTokenOnFirstUserSigIn_ShouldReturnUserWithRefreshAndAccessTokenDTO() {
             // Given
             String email = AuthenticationDTOMother.complete().build().getEmail();
             String password = AuthenticationDTOMother.complete().build().getPassword();
             User user = UserMother.complete().build();
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user, password);
+            String refreshToken = "refreshToken";
+            Jwt jwt = Jwt.withTokenValue(refreshToken)
+                    .expiresAt(Instant.now())
+                    .header("alg", "SH252")
+                    .build();
+
+            given(authenticationManager.authenticate(any(Authentication.class))).willReturn(authenticationToken);
+            given(tokenService.validateJWT(refreshToken)).willReturn(jwt);
+            given(tokenService.createRefreshToken(email)).willReturn(refreshToken);
+
+            // When
+            cut.authenticateUser(email, password);
+
+            // Then
+            ArgumentCaptor<User> userArgumentMatcher = ArgumentCaptor.forClass(User.class);
+            then(userRepository).should().save(userArgumentMatcher.capture());
+
+            assertThat(userArgumentMatcher.getValue().getToken()).isNotNull();
+            assertThat(userArgumentMatcher.getValue().getToken().isValid()).isTrue();
+            assertThat(userArgumentMatcher.getValue().getToken().getExpireTime()).isEqualTo(jwt.getExpiresAt());
+        }
+
+        @Test
+        void authenticateUser_ReuseRefreshTokenWithDifferentValueOnSubsequentSignIn_ShouldReturnUserWithRefreshAndAccessTokenDTO() {
+            // Given
+            String email = AuthenticationDTOMother.complete().build().getEmail();
+            String password = AuthenticationDTOMother.complete().build().getPassword();
+            User user = UserMother.complete().token(TokenMother.complete().build()).build();
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user, password);
             String refreshToken = "refreshToken";
             Jwt jwt = Jwt.withTokenValue(refreshToken)
@@ -166,13 +196,13 @@ class AuthenticationServiceTest {
             String refreshToken = "refreshToken";
 
             given(authenticationManager.authenticate(any(Authentication.class))).willReturn(authenticationToken);
-            given(tokenService.validateJWT(refreshToken)).willThrow(new RuntimeException(ErrorMessages.INVALID_REFRESH_TOKEN));
+            given(tokenService.validateJWT(refreshToken)).willThrow(new JwtException(ErrorMessages.INVALID_REFRESH_TOKEN));
             given(tokenService.createRefreshToken(email)).willReturn(refreshToken);
 
             // When
             assertThatThrownBy(() -> cut.authenticateUser(email, password))
                     .isInstanceOf(RuntimeException.class)
-                    .hasMessage(ErrorMessages.INVALID_REFRESH_TOKEN);
+                    .hasMessage(ErrorMessages.INVALID_REFRESH_TOKEN + ": " + ErrorMessages.FAIL_TOKEN_DECODE);
 
             // Then
             then(userRepository).shouldHaveNoInteractions();
@@ -219,12 +249,12 @@ class AuthenticationServiceTest {
             // Given
             String refreshToken = "refreshToken";
 
-            given(tokenService.validateJWT(refreshToken)).willThrow(new RefreshTokenException(ErrorMessages.INVALID_REFRESH_TOKEN));
+            given(tokenService.validateJWT(refreshToken)).willThrow(new JwtException(ErrorMessages.INVALID_REFRESH_TOKEN));
 
             // When
             assertThatThrownBy(() -> cut.refreshAccessToken(refreshToken))
                     .isInstanceOf(RefreshTokenException.class)
-                    .hasMessage(ErrorMessages.INVALID_REFRESH_TOKEN);
+                    .hasMessage(ErrorMessages.INVALID_REFRESH_TOKEN + ": " + ErrorMessages.FAIL_TOKEN_DECODE);
 
             // Then
             then(userRepository).shouldHaveNoInteractions();
@@ -240,16 +270,15 @@ class AuthenticationServiceTest {
             Instant tokenExpirationTime = fixedClock.instant();
 
             String refreshToken = "refreshToken";
-            Token token = TokenMother.complete().refreshToken(refreshToken).expireTime(tokenExpirationTime).build();
-            User user = UserMother.complete().token(token).build();
+            String subject = "john.gmail.com";
             Jwt jwt = Jwt.withTokenValue(refreshToken)
                     .expiresAt(tokenExpirationTime)
-                    .subject(user.getEmail())
+                    .subject(subject)
                     .header("alg", "SH252")
                     .build();
 
             given(tokenService.validateJWT(refreshToken)).willReturn(jwt);
-            given(userRepository.findByEmail(user.getEmail())).willReturn(Optional.empty());
+            given(userRepository.findByEmail(subject)).willReturn(Optional.empty());
 
             // When
             assertThatThrownBy(() -> cut.refreshAccessToken(refreshToken))
